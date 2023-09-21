@@ -207,11 +207,9 @@ function App() {
     } catch (error) {
       console.error("There has been a problem with your fetch operation:", error);
     }
+    console.error("There has been a problem with your fetch operation:");
+    setWaitingForSystem(WaitingStates.Idle); // Handle errors and set the state to "Idle"
   };
-  
-    
-  
-  
   
   async function getApiData() {
     if(document.hidden){
