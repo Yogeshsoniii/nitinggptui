@@ -19,13 +19,13 @@ export default function Sidebar(props: {
     <>
       <div className="sidebar">
         <div className="logo">
-            <AssistantIcon /> GPT-Code UI
+            <AssistantIcon /> FlowVisor
 
             <div className='github'>
-                <a href='https://github.com/ricklamers/gpt-code-ui'>Open Source - v{import.meta.env.VITE_APP_VERSION}</a>
+                <a href=''>Microsoft{import.meta.env.VITE_APP_VERSION}</a>
             </div>
         </div>
-        <div className="settings">
+        {/* <div className="settings">
             <label className="header">Settings</label>
             <label>Model</label>
             <select
@@ -42,7 +42,7 @@ export default function Sidebar(props: {
             </select>
             <label>Credentials</label>
             <button onClick={handleOpenAIButtonClick}>Set OpenAI key</button>
-        </div>
+        </div> */}
       </div>
     </>
   );

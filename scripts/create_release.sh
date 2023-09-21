@@ -7,7 +7,7 @@ DESCRIPTION="Install with \`pip install gpt-code-ui\` or download bundle and run
 # If $GH_API_TOKEN print error
 if [ -z "$GH_API_TOKEN" ]; then
     echo "Error: Please set the GH_API_TOKEN environment variable."
-    exit 1
+    exit 
 fi
 
 API_JSON=$(printf '{"tag_name": "%s", "target_commitish": "main", "name": "%s", "body": "%s", "draft": false, "prerelease": false}' "$TAG" "$TITLE" "$DESCRIPTION")

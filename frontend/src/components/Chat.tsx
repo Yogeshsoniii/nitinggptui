@@ -39,7 +39,7 @@ function Message(props: {
         </div>
       </div>
       <div className="message-body">
-        {props.type == "message" &&
+        {props.type === "message" &&
           (props.showLoader ? (
             <div>
               {text} {props.showLoader ? <div className="loader"></div> : null}
@@ -47,32 +47,32 @@ function Message(props: {
           ) : (
             isMarkdown(text) ? 
               <ReactMarkdown
-              children={text}
-              remarkPlugins={[remarkGfm]}
-              components={{
-                code({node, inline, className, children, style, ...props}) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  return !inline ? (
-                    <SyntaxHighlighter
-                      {...props}
-                      children={String(children).replace(/\n$/, '')}
-                      wrapLongLines={true}
-                      language={match ? match[1] : "python"}
-                      PreTag="div"
-                    />
-                  ) : (
-                    <code {...props} className={className}>
-                      {children}
-                    </code>
-                  )
-                }
-              }}
-            />
-          :
-            <div className="cell-output" dangerouslySetInnerHTML={{ __html: text }}></div>
+                children={text}
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  code({node, inline, className, children, style, ...props}) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return !inline ? (
+                      <SyntaxHighlighter
+                        {...props}
+                        children={String(children).replace(/\n$/, '')}
+                        wrapLongLines={true}
+                        language={match ? match[1] : "python"}
+                        PreTag="div"
+                      />
+                    ) : (
+                      <code {...props} className={className}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              />
+            :
+              <div className="cell-output" dangerouslySetInnerHTML={{ __html: text }}></div>
           ))}
 
-        {(props.type == "message_raw") &&
+        {(props.type === "message_raw") &&
           (props.showLoader ? (
             <div>
               {text} {props.showLoader ? <div className="loader"></div> : null}
@@ -81,10 +81,17 @@ function Message(props: {
             <div className="cell-output" dangerouslySetInnerHTML={{ __html: text }}></div>
           ))}
         
-        {props.type == "image/png" &&
+        {props.type === "image/svg" && (
+          <div
+            className="cell-output-image"
+            dangerouslySetInnerHTML={{ __html: text }}
+          ></div>
+        )}
+        
+        {props.type === "image/png" &&
           <div className="cell-output-image" dangerouslySetInnerHTML={{ __html: `<img src='data:image/png;base64,${text}' />` }}></div>
         }
-        {props.type == "image/jpeg" &&
+        {props.type === "image/jpeg" &&
           <div className="cell-output-image" dangerouslySetInnerHTML={{ __html: `<img src='data:image/jpeg;base64,${text}' />` }}></div>
         }
       </div>
@@ -93,8 +100,9 @@ function Message(props: {
 }
 
 
+
 export enum WaitingStates {
-  GeneratingCode = "Generating code",
+  GeneratingCode = "Loading..",
   RunningCode = "Running code",
   UploadingFile = "Uploading file",
   Idle = "Idle",
@@ -118,7 +126,7 @@ export default function Chat(props: {
             />
           );
         })}
-        {props.waitingForSystem != WaitingStates.Idle ? (
+        {props.waitingForSystem !== WaitingStates.Idle ? (
           <Message
             text={props.waitingForSystem}
             role="system"

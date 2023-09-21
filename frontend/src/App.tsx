@@ -41,15 +41,15 @@ function App() {
   let [messages, setMessages] = useState<Array<MessageDict>>(
     Array.from([
       {
-        text: "Hello! I'm a GPT Code assistant. Ask me to do something for you! Pro tip: you can upload a file and I'll be able to use it.",
+        text: "Hello! How Can I help you?",
         role: "generator",
         type: "message",
       },
-      {
-        text: "If I get stuck just type 'reset' and I'll restart the kernel.",
-        role: "generator",
-        type: "message",
-      },
+      // {
+      //   text: "If I get stuck just type 'reset' and I'll restart the kernel.",
+      //   role: "generator",
+      //   type: "message",
+      // },
     ])
   );
   let [waitingForSystem, setWaitingForSystem] = useState<WaitingStates>(
@@ -58,7 +58,7 @@ function App() {
   const chatScrollRef = React.useRef<HTMLDivElement>(null);
 
   const submitCode = async (code: string) => {
-    fetch(`${Config.API_ADDRESS}/api`, {
+    fetch('', {  // Replace `${Config.API_ADDRESS}/api` with ''
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +79,7 @@ function App() {
     if (command == "reset") {
       addMessage({ text: "Restarting the kernel.", type: "message", role: "system" });
 
-      fetch(`${Config.API_ADDRESS}/restart`, {
+      fetch('', {  // Replace `${Config.API_ADDRESS}/restart` with ''
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,62 +91,139 @@ function App() {
     }
   };
 
+  // const sendMessage = async (userInput: string) => {
+  //   try {
+  //     if (COMMANDS.includes(userInput)) {
+  //       handleCommand(userInput);
+  //       return;
+  //     }
+  
+  //     if (userInput.length === 0) {
+  //       return;
+  //     }
+  
+  //     addMessage({ text: userInput, type: "message", role: "user" });
+  //     setWaitingForSystem(WaitingStates.GeneratingCode);
+  
+  //     const api_url = 'https://flowvisorfuncapp.azurewebsites.net/api/visualize_flow';
+  //     const queryParams = `?query=${encodeURIComponent(userInput)}`;
+  
+  //     const response = await fetch(api_url + queryParams, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+  
+  //     if (response.status !== 200) {
+  //       setWaitingForSystem(WaitingStates.Idle);
+  //       return;
+  //     }
+  
+  //     const textResponse = await response.text(); // Read the response as plain text
+  
+  //     // Check if the response contains SVG content
+  //     const svgMatch = /<svg[^>]*>[\s\S]*<\/svg>/i.exec(textResponse);
+  
+  //     if (svgMatch) {
+  //       // Extract the SVG content
+  //       const svgContent = svgMatch[0];
+  //       // Render the extracted SVG content as an SVG element
+  //       addMessage({ text: svgContent, type: "image/svg", role: "generator" });
+  //     } else {
+  //       // If no SVG content found, treat it as regular text
+  //       addMessage({ text: textResponse, type: "message", role: "generator" });
+  //     }
+  
+  //     // Handle the rest of your code as needed
+  //   } catch (error) {
+  //     console.error("There has been a problem with your fetch operation:", error);
+  //   }
+  // };
+
   const sendMessage = async (userInput: string) => {
     try {
       if (COMMANDS.includes(userInput)) {
         handleCommand(userInput);
         return;
       }
-
-      if (userInput.length == 0) {
+  
+      if (userInput.length === 0) {
         return;
       }
-
+  
       addMessage({ text: userInput, type: "message", role: "user" });
       setWaitingForSystem(WaitingStates.GeneratingCode);
-
-      const response = await fetch(`${Config.WEB_ADDRESS}/generate`, {
-        method: "POST",
+  
+      const api_url = 'https://flowvisorfuncapp.azurewebsites.net/api/visualize_flow';
+      const queryParams = `?query=${encodeURIComponent(userInput)}`;
+  
+      const response = await fetch(api_url + queryParams, {
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: userInput,
-          model: selectedModel,
-          openAIKey: openAIKey,
-        }),
       });
-
-      const data = await response.json();
-      const code = data.code;
-
-      addMessage({ text: data.text, type: "message", role: "generator" });
-
-      if (response.status != 200) {
+  
+      if (response.status !== 200) {
         setWaitingForSystem(WaitingStates.Idle);
         return;
       }
-      
-      if (!!code) {
-        submitCode(code);
-        setWaitingForSystem(WaitingStates.RunningCode);
+  
+      const textResponse = await response.text(); // Read the response as plain text
+  
+      // Check if the response contains SVG content
+      const svgMatch = /<svg[^>]*>[\s\S]*<\/svg>/i.exec(textResponse);
+  
+      if (svgMatch) {
+        // Extract the SVG content
+        const svgContent = svgMatch[0];
+  
+        // Create a DOMParser
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgContent, "image/svg+xml");
+  
+        // Check if the SVG element exists
+        const svgElement = doc.querySelector("svg");
+        if (svgElement) {
+          // Modify the SVG attributes (e.g., set the height)
+          svgElement.setAttribute("height", "380.4pt");
+  
+          // Convert the modified SVG back to a string
+          const modifiedSvgContent = new XMLSerializer().serializeToString(doc);
+  
+          // Render the modified SVG content as an SVG element
+          addMessage({ text: modifiedSvgContent, type: "image/svg", role: "generator" });
+        } else {
+          // If the SVG element is not found, treat it as regular text
+          addMessage({ text: textResponse, type: "message", role: "generator" });
+        }
       } else {
-        setWaitingForSystem(WaitingStates.Idle);
+        // If no SVG content found, treat it as regular text
+        addMessage({ text: textResponse, type: "message", role: "generator" });
       }
+  
+      // Handle the rest of your code as needed
     } catch (error) {
-      console.error(
-        "There has been a problem with your fetch operation:",
-        error
-      );
+      console.error("There has been a problem with your fetch operation:", error);
     }
   };
-
+  
+    
+  
+  
+  
   async function getApiData() {
     if(document.hidden){
       return;
     }
     
-    let response = await fetch(`${Config.API_ADDRESS}/api`);
+    let response = await fetch('', {  // Replace `${Config.API_ADDRESS}/api` with ''
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     let data = await response.json();
     data.results.forEach(function (result: {value: string, type: string}) {
       if (result.value.trim().length == 0) {
@@ -156,6 +233,7 @@ function App() {
       addMessage({ text: result.value, type: result.type, role: "system" });
       setWaitingForSystem(WaitingStates.Idle);
     });
+    
   }
 
   function completeUpload(message: string) {
